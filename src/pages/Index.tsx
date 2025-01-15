@@ -1,11 +1,40 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from "react";
+import { CreatePost } from "@/components/CreatePost";
+import { Post } from "@/components/Post";
+import { Card } from "@/components/ui/card";
 
 const Index = () => {
+  const [posts, setPosts] = useState<any[]>([]);
+
+  const loadPosts = () => {
+    const storedPosts = JSON.parse(localStorage.getItem("posts") || "[]");
+    setPosts(storedPosts);
+  };
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <div className="container py-8 space-y-8">
+        <h1 className="text-4xl font-bold text-center mb-8">Anonymous Forum</h1>
+        
+        <Card className="p-6">
+          <CreatePost onPostCreated={loadPosts} />
+        </Card>
+
+        <div className="space-y-6">
+          {posts.map((post) => (
+            <Post
+              key={post.id}
+              id={post.id}
+              content={post.content}
+              comments={post.comments}
+              onUpdate={loadPosts}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
