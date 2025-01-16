@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { supabase } from "@/lib/supabaseClient";
 
 interface TreeNode {
@@ -12,6 +14,7 @@ interface TreeNode {
 const SphereVisualization = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<any[]>([]);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark'); // Default to dark theme
 
   useEffect(() => {
     // Fetch posts from Supabase
@@ -62,7 +65,7 @@ const SphereVisualization = () => {
 
     // Three.js setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x101010);
+    scene.background = new THREE.Color(theme === 'dark' ? 0xffffff : 0x000000); // Black or white background
     const camera = new THREE.PerspectiveCamera(
       75,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
@@ -88,7 +91,7 @@ const SphereVisualization = () => {
     // Create dots
     const dotGeometry = new THREE.BufferGeometry();
     const dotMaterial = new THREE.PointsMaterial({
-      color: 0x00ff88,
+      color: theme === 'dark' ? 0x000000 : 0xffffff, // White or black nodes
       size: 0.2,
       sizeAttenuation: true,
       transparent: true,
@@ -96,6 +99,7 @@ const SphereVisualization = () => {
     });
 
     const positions: number[] = [];
+
     const addDots = (node: TreeNode, parentPosition = new THREE.Vector3(0, 0, 0), depth = 0) => {
       // Add position for current node
       positions.push(parentPosition.x, parentPosition.y, parentPosition.z);
@@ -109,7 +113,10 @@ const SphereVisualization = () => {
           const x = parentPosition.x + radius * Math.cos(angle);
           const y = parentPosition.y + radius * Math.sin(angle);
           const z = parentPosition.z;
-          addDots(child, new THREE.Vector3(x, y, z), depth + 1);
+          const childPosition = new THREE.Vector3(x, y, z);
+
+          // Recursively add child nodes
+          addDots(child, childPosition, depth + 1);
         });
       }
     };
@@ -122,9 +129,28 @@ const SphereVisualization = () => {
 
     // Add root node (larger and distinct)
     const rootGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const rootMaterial = new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0xaa0000 });
+    const rootMaterial = new THREE.MeshStandardMaterial({ 
+      color: theme === 'dark' ? 0xffffff : 0x000000, // White or black root node
+      emissive: theme === 'dark' ? 0x000000 : 0xffffff,
+    });
     const root = new THREE.Mesh(rootGeometry, rootMaterial);
     scene.add(root);
+
+    // Load font and add "hello, world" text to the root node
+    const fontLoader = new FontLoader();
+    fontLoader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
+      const textGeometry = new TextGeometry('hello, world', {
+        size: 0.2,
+        depth: 0.02, // Use depth instead of height
+        font: font,
+      });
+      const textMaterial = new THREE.MeshBasicMaterial({ 
+        color: theme === 'dark' ? 0x000000 : 0xffffff, // White or black text
+      });
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+      textMesh.position.set(0, 0.8, 0); // Position text above the root node
+      root.add(textMesh);
+    });
 
     camera.position.z = 15;
 
@@ -155,7 +181,7 @@ const SphereVisualization = () => {
       window.removeEventListener('resize', handleResize);
       containerRef.current?.removeChild(renderer.domElement);
     };
-  }, [posts]);
+  }, [posts, theme]); // Add theme as a dependency
 
   return <div ref={containerRef} style={{ width: '100%', height: '400px' }} />;
 };

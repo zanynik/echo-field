@@ -12,6 +12,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import SphereVisualization from "@/components/SphereVisualization";
+import Groq from "groq-sdk";
+
+const groq = new Groq({
+  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
 
 interface PostType {
   id: string;
@@ -62,6 +68,10 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const [aiChatVisible, setAiChatVisible] = useState(false);
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiChatInput, setAiChatInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<{ role: string; content: string }[]>([]);
 
   const loadPosts = async () => {
     try {
@@ -119,11 +129,72 @@ const Index = () => {
     }
   };
 
-  const handleAIClick = () => {
-    toast({
-      title: "AI Assistant",
-      description: "AI functionality coming soon!",
-    });
+  const handleAIClick = async () => {
+    setAiChatVisible(true);
+
+    if (!searchQuery.trim()) {
+      setChatHistory([{ role: "assistant", content: "Welcome! This is a project where you can explore and ask questions. Feel free to ask anything!" }]);
+      return;
+    }
+
+    try {
+      // Add user's message to chat history
+      setChatHistory((prev) => [...prev, { role: "user", content: searchQuery }]);
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "user",
+            content: searchQuery,
+          },
+        ],
+        model: "llama-3.3-70b-versatile",
+      });
+
+      // Add AI's response to chat history
+      setChatHistory((prev) => [...prev, { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" }]);
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch AI response",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAIChatInput = async (event: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+
+    if (!aiChatInput.trim()) {
+      return;
+    }
+
+    try {
+      // Add user's message to chat history
+      setChatHistory((prev) => [...prev, { role: "user", content: aiChatInput }]);
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "user",
+            content: aiChatInput,
+          },
+        ],
+        model: "llama-3.3-70b-versatile",
+      });
+
+      // Add AI's response to chat history
+      setChatHistory((prev) => [...prev, { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" }]);
+      setAiChatInput("");
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch AI response",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleCommentVisibility = (postId: string) => {
@@ -179,6 +250,59 @@ const Index = () => {
           </div>
         </div>
 
+        {/* AI Chat Section */}
+        {aiChatVisible && (
+          <div className="bg-background border rounded-lg shadow-lg p-4 mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">AI Chat</h2>
+              <button
+                onClick={() => setAiChatVisible(false)}
+                className="p-1 hover:bg-gray-100 rounded-full"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-96 mb-4">
+              {chatHistory.map((message, index) => (
+                <div
+                  key={index}
+                  className={`mb-3 ${
+                    message.role === "user" ? "text-right" : "text-left"
+                  }`}
+                >
+                  <div
+                    className={`inline-block p-3 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-blue-100 text-blue-900"
+                        : "bg-gray-100 text-gray-900"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={aiChatInput}
+                onChange={(e) => setAiChatInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleAIChatInput(e);
+                  }
+                }}
+                placeholder="Type your message..."
+                className="flex-1"
+              />
+              <Button onClick={handleAIChatInput}>
+                <Sparkle className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Posts Section */}
         <div className="space-y-6">
           {isLoading ? (
             <div className="text-center">...</div>
