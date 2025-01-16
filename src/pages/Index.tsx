@@ -135,11 +135,8 @@ const Index = () => {
     if (!searchQuery.trim()) {
       // Welcome message with project info
       const welcomeMessage = `
-        Welcome to Echo Field! 🌌
-        Echo Field is an experimental social space that intentionally strips away traditional social media elements like usernames, likes, counts of comments and timestamps, focusing purely on the content and its position in the conversation tree.
-        Contributions are welcome!
-  
-        Ask me anything about the project or the conversations/posts here!
+        🌌 Echo Field is an experimental social space that intentionally strips away traditional social media elements like usernames, likes, counts of comments and timestamps, focusing purely on the content and its position in the conversation tree. 
+        You can ask AI about the conversations/posts here - Chat with the Echoes!
       `;
       setChatHistory([{ role: "assistant", content: welcomeMessage }]);
       return;
@@ -150,13 +147,13 @@ const Index = () => {
       setChatHistory((prev) => [...prev, { role: "user", content: searchQuery }]);
   
       // Check if the query is related to posts
-      if (searchQuery.toLowerCase().includes("posts") || searchQuery.toLowerCase().includes("conversations")) {
+      if (searchQuery.toLowerCase().includes("post") || searchQuery.toLowerCase().includes("conversation") || searchQuery.toLowerCase().includes("echo")) {
         // Fetch posts from Supabase
         const { data: posts, error } = await supabase
           .from("posts")
           .select("*")
-          .order("id", { ascending: false })
-          .limit(5); // Fetch the latest 5 posts
+          .order("id", { ascending: true })
+          .limit(50); // Fetch the latest 5 posts
   
         if (error) throw error;
   
@@ -171,7 +168,7 @@ const Index = () => {
           Here are some recent posts from Echo Field:
           ${postsContent}
   
-          Please provide a response based on the user's question and the posts above.
+          Forming sentence chains by joining "id" to their "parent_id" can make more sense sometimes then individual content. Please provide a response based on the user's question and the posts above.
         `;
   
         // Get AI response
@@ -348,7 +345,7 @@ const Index = () => {
           <div className="bg-background border rounded-lg shadow-lg p-4 mb-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <Sparkle className="h-5 w-5 text-blue-500" />
+                <Sparkle className="h-5 w-5" />
               </div>
               <button
                 onClick={() => setAiChatVisible(false)}
