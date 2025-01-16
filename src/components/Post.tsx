@@ -99,7 +99,7 @@ export const Post = ({
   const inputTextColor = isLast
     ? theme === "dark"
       ? "text-black placeholder:text-black/60"
-      : "text-white placeholder:text-white/60"
+      : "text-black placeholder:text-black/60"
     : "";
 
   return (
@@ -153,7 +153,7 @@ export const Post = ({
                 variant="outline"
               >
                 <Send
-                  color={isLast ? (theme === "dark" ? "black" : "white") : iconColor}
+                  color={isLast ? (theme === "dark" ? "black" : "black") : iconColor}
                 />
               </Button>
             </div>

@@ -3,7 +3,7 @@ import { Post } from "@/components/Post";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bot, Info, Globe } from "lucide-react";
+import { Search, Sparkle, Info, Globe } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -69,7 +69,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("posts")
         .select("*")
-        .order("id", { ascending: false });
+        .order("id", { ascending: true });
 
       if (error) throw error;
 
@@ -152,7 +152,7 @@ const Index = () => {
               <Search className="h-4 w-4" />
             </Button>
             <Button variant="ghost" onClick={handleAIClick}>
-              <Bot className="h-4 w-4" />
+              <Sparkle className="h-4 w-4" />
             </Button>
           </div>
           <div className="w-1/4 flex justify-end">
