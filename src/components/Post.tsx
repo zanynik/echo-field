@@ -89,6 +89,9 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
       : 'bg-black/10 text-black'
     : '';
 
+  const iconColor = theme === 'dark' ? 'white' : 'black';
+  const oppositeColor = theme === 'dark' ? 'black' : 'white';
+
   return (
     <Card className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
       <CardContent className="pt-6">
@@ -100,18 +103,24 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
             {comments.length > 0 && (
               <Button
                 variant="ghost"
-                className="flex-1"
+                className="flex-1 hover:bg-transparent"
                 onClick={() => setShowComments(!showComments)}
               >
-                <MessageCircle />
+                <MessageCircle 
+                  fill={showComments ? oppositeColor : "transparent"}
+                  color={iconColor}
+                />
               </Button>
             )}
             <Button
               variant="ghost"
-              className="flex-1"
+              className="flex-1 hover:bg-transparent"
               onClick={() => setShowWriteComment(!showWriteComment)}
             >
-              <Pencil />
+              <Pencil 
+                fill={showWriteComment ? oppositeColor : "transparent"}
+                color={iconColor}
+              />
             </Button>
           </div>
 
@@ -125,10 +134,10 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
               />
               <Button
                 onClick={handleAddComment}
-                className="w-full"
+                className="w-full hover:bg-transparent"
                 variant="outline"
               >
-                <Send />
+                <Send color={iconColor} />
               </Button>
             </div>
           )}
