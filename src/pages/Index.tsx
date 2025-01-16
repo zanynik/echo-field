@@ -219,9 +219,9 @@ const Index = () => {
               onKeyPress={handleKeyPress}
               className="w-full"
             />
-            <Button variant="ghost" onClick={handleSearch}>
+            {/* <Button variant="ghost" onClick={handleSearch}>
               <Search className="h-4 w-4" />
-            </Button>
+            </Button> */}
             <Button variant="ghost" onClick={handleAIClick}>
               <Sparkle className="h-4 w-4" />
             </Button>
@@ -254,7 +254,7 @@ const Index = () => {
         {aiChatVisible && (
           <div className="bg-background border rounded-lg shadow-lg p-4 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">AI Chat</h2>
+              <Sparkle className="h-4 w-4" />
               <button
                 onClick={() => setAiChatVisible(false)}
                 className="p-1 hover:bg-gray-100 rounded-full"
