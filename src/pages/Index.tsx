@@ -14,7 +14,7 @@ interface PostType {
   comments?: PostType[];
 }
 
-const buildHierarchy = (posts: PostType[]): PostType[] => {
+const buildHierarchy = (posts: PostType[], highlightedId?: string): PostType[] => {
   const postMap = new Map<string, PostType>();
   const rootPosts: PostType[] = [];
 
@@ -36,6 +36,15 @@ const buildHierarchy = (posts: PostType[]): PostType[] => {
       rootPosts.push(postWithComments);
     }
   });
+
+  // If we have a highlighted post, move it to the top
+  if (highlightedId) {
+    const highlightIndex = rootPosts.findIndex(post => post.id === highlightedId);
+    if (highlightIndex > 0) {
+      const [highlightedPost] = rootPosts.splice(highlightIndex, 1);
+      rootPosts.unshift(highlightedPost);
+    }
+  }
 
   return rootPosts;
 };
@@ -88,12 +97,29 @@ const Index = () => {
         .from('posts')
         .select('*')
         .ilike('content', `%${searchQuery}%`)
+        .is('parent_id', null) // Only search root posts
         .order('id', { ascending: false });
 
       if (error) throw error;
 
-      const hierarchicalPosts = buildHierarchy(data || []);
-      setFilteredPosts(hierarchicalPosts);
+      if (data && data.length > 0) {
+        // Randomly select one of the matching posts
+        const randomIndex = Math.floor(Math.random() * data.length);
+        const highlightedPost = data[randomIndex];
+
+        // Get all posts to build the complete hierarchy
+        const { data: allPosts, error: allPostsError } = await supabase
+          .from('posts')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (allPostsError) throw allPostsError;
+
+        const hierarchicalPosts = buildHierarchy(allPosts || [], highlightedPost.id);
+        setFilteredPosts(hierarchicalPosts);
+      } else {
+        setFilteredPosts([]);
+      }
     } catch (error) {
       console.error('Error searching posts:', error);
       toast({

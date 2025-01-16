@@ -30,7 +30,9 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast =
   const { theme } = useTheme();
 
   const handleContentClick = () => {
-    setShowComments(!showComments);
+    if (comments.length > 0) {
+      setShowComments(!showComments);
+    }
   };
 
   const handleAddComment = async () => {
@@ -84,9 +86,19 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast =
   const iconColor = theme === 'dark' ? 'white' : 'black';
   const oppositeColor = theme === 'dark' ? 'black' : 'white';
 
+  // Determine text color for input based on theme and isLast
+  const inputTextColor = isLast
+    ? theme === 'dark'
+      ? 'text-black placeholder:text-black/60'
+      : 'text-white placeholder:text-white/60'
+    : '';
+
   return (
     <Card className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
-      <CardContent className="pt-6 cursor-pointer" onClick={handleContentClick}>
+      <CardContent 
+        className={`pt-6 ${comments.length > 0 ? 'cursor-pointer' : ''}`} 
+        onClick={handleContentClick}
+      >
         <p className="whitespace-pre-wrap">{content}</p>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
@@ -101,7 +113,7 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast =
                 <MessageCircle 
                   className="transition-all duration-200"
                   fill={showComments ? oppositeColor : "transparent"}
-                  color={iconColor}
+                  color={isLast ? (theme === 'dark' ? 'black' : 'white') : iconColor}
                 />
               </Button>
             )}
@@ -113,7 +125,7 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast =
               <Pencil 
                 className="transition-all duration-200"
                 fill={showWriteComment ? oppositeColor : "transparent"}
-                color={iconColor}
+                color={isLast ? (theme === 'dark' ? 'black' : 'white') : iconColor}
               />
             </Button>
           </div>
@@ -124,22 +136,24 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast =
                 placeholder="Write a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="resize-none"
+                className={`resize-none ${inputTextColor}`}
               />
               <Button
                 onClick={handleAddComment}
                 className="w-full hover:bg-transparent"
                 variant="outline"
               >
-                <Send color={iconColor} />
+                <Send 
+                  color={isLast ? (theme === 'dark' ? 'black' : 'white') : iconColor} 
+                />
               </Button>
             </div>
           )}
         </div>
         
-        {showComments && (
+        {showComments && comments.length > 0 && (
           <div className="w-full space-y-4">
-            {comments && comments.map((comment) => (
+            {comments.map((comment) => (
               <Post
                 key={comment.id}
                 id={comment.id}
