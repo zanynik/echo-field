@@ -1,69 +1,56 @@
-# Welcome to your Lovable project
+# Echo Field
 
-## Project info
+An experimental social space where thoughts echo endlessly through nested conversations. Built with React and TypeScript.
 
-**URL**: https://lovable.dev/projects/1743c214-e643-465a-ab38-ed98c8779432
+## 🌀 About
 
-## How can I edit this code?
+Echo Field is an art project exploring the concept of infinite conversation nesting. Each comment can spawn its own thread of responses, creating a fractal-like structure of human interaction.
 
-There are several ways of editing your application.
+Key features:
+- Infinitely nestable comments
+- Dark/light theme switching
+- Minimalist interface
+- Real-time updates
+- Thread collapsing
 
-**Use Lovable**
+## 🚀 Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1743c214-e643-465a-ab38-ed98c8779432) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Make sure you have [Node.js](https://nodejs.org/) installed on your system.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navigate to project directory
+cd digital-canvas
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🛠 Tech Stack
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
+- React + TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
+- shadcn/ui components
 - Tailwind CSS
+- Supabase (for data persistence)
 
-## How can I deploy this project?
+## 💭 Philosophy
 
-Simply open [Lovable](https://lovable.dev/projects/1743c214-e643-465a-ab38-ed98c8779432) and click on Share -> Publish.
+Echo Field explores how conversations branch and evolve in digital spaces. Like echoes in a canyon, each comment has the potential to spawn infinite reflections, creating emergent patterns of dialogue.
 
-## I want to use a custom domain - is that possible?
+The project intentionally strips away traditional social media elements like usernames, likes, counts of comments and timestamps, focusing purely on the content and its position in the conversation tree.
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Open issues for bugs or suggestions
+- Submit pull requests
+- Fork and experiment
+---
+
+Created with ❤️ & curiosity by zanynik (Nikhil)
