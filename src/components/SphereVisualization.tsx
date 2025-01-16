@@ -152,7 +152,7 @@ const SphereVisualization = () => {
       root.add(textMesh);
     });
 
-    camera.position.z = 15;
+    camera.position.z = 5;
 
     // Animation loop
     const animate = () => {

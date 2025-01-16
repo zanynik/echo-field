@@ -330,16 +330,6 @@ const Index = () => {
             </Button>
           </div>
           <div className="w-1/4 flex justify-end">
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="p-2 hover:bg-gray-100 rounded-full">
-                  <Globe className="h-5 w-5" />
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px]">
-                <SphereVisualization />
-              </DialogContent>
-            </Dialog>
             <a
               href="https://zanynik.github.io/echo-field/"
               target="_blank"
@@ -434,6 +424,7 @@ const Index = () => {
             ))
           )}
         </div>
+        <SphereVisualization />
       </div>
     </div>
   );
