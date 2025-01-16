@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
 import { MessageCircle, Send, Pencil } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Comment {
   id: string;
@@ -18,16 +19,21 @@ interface PostProps {
   comments: Comment[];
   onUpdate: () => void;
   depth?: number;
+  isLast?: boolean;
 }
 
-export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostProps) => {
+export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isLast = false }: PostProps & { isLast?: boolean }) => {
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [showWriteComment, setShowWriteComment] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
 
-  const handleAddComment = () => {
+  const handleContentClick = () => {
+    setShowComments(!showComments);
+  };
+
+  const handleAddComment = async () => {
     if (!newComment.trim()) {
       toast({
         title: "Error",
@@ -37,56 +43,42 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
       return;
     }
 
-    const posts = JSON.parse(localStorage.getItem("posts") || "[]");
-    
-    const addCommentToStructure = (items: any[], targetId: string): boolean => {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].id === targetId) {
-          items[i].comments.push({
-            id: Date.now().toString(),
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert([
+          {
             content: newComment,
-            comments: [],
-          });
-          return true;
-        }
-        if (items[i].comments && items[i].comments.length > 0) {
-          if (addCommentToStructure(items[i].comments, targetId)) {
-            return true;
+            parent_id: id
           }
-        }
-      }
-      return false;
-    };
+        ])
+        .select()
+        .single();
 
-    if (depth === 0) {
-      const postIndex = posts.findIndex((p: any) => p.id === id);
-      if (postIndex !== -1) {
-        posts[postIndex].comments.push({
-          id: Date.now().toString(),
-          content: newComment,
-          comments: [],
-        });
-      }
-    } else {
-      addCommentToStructure(posts, id);
+      if (error) throw error;
+
+      setNewComment("");
+      setShowWriteComment(false);
+      onUpdate();
+      
+      toast({
+        title: "Success",
+        description: "Comment added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add comment",
+        variant: "destructive",
+      });
     }
-
-    localStorage.setItem("posts", JSON.stringify(posts));
-    setNewComment("");
-    setShowWriteComment(false);
-    onUpdate();
-    
-    toast({
-      title: "Success",
-      description: "Comment added successfully",
-    });
   };
 
-  const hasNoComments = comments.length === 0;
-  const themeBasedClass = hasNoComments
+  const themeBasedClass = isLast
     ? theme === 'dark'
-      ? 'bg-white/10 text-white'
-      : 'bg-black/10 text-black'
+      ? 'bg-white/90 text-black'
+      : 'bg-black/90 text-white'
     : '';
 
   const iconColor = theme === 'dark' ? 'white' : 'black';
@@ -94,7 +86,7 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
 
   return (
     <Card className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 cursor-pointer" onClick={handleContentClick}>
         <p className="whitespace-pre-wrap">{content}</p>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
@@ -103,10 +95,11 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
             {comments.length > 0 && (
               <Button
                 variant="ghost"
-                className="flex-1 hover:bg-transparent"
+                className="flex-1 hover:bg-transparent group"
                 onClick={() => setShowComments(!showComments)}
               >
                 <MessageCircle 
+                  className="transition-all duration-200"
                   fill={showComments ? oppositeColor : "transparent"}
                   color={iconColor}
                 />
@@ -114,10 +107,11 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
             )}
             <Button
               variant="ghost"
-              className="flex-1 hover:bg-transparent"
+              className="flex-1 hover:bg-transparent group"
               onClick={() => setShowWriteComment(!showWriteComment)}
             >
               <Pencil 
+                className="transition-all duration-200"
                 fill={showWriteComment ? oppositeColor : "transparent"}
                 color={iconColor}
               />
