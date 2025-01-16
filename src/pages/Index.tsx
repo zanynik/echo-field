@@ -131,28 +131,83 @@ const Index = () => {
 
   const handleAIClick = async () => {
     setAiChatVisible(true);
-
+  
     if (!searchQuery.trim()) {
-      setChatHistory([{ role: "assistant", content: "Welcome! This is a project where you can explore and ask questions. Feel free to ask anything!" }]);
+      // Welcome message with project info
+      const welcomeMessage = `
+        Welcome to Echo Field! 🌌
+        Echo Field is an experimental social space that intentionally strips away traditional social media elements like usernames, likes, counts of comments and timestamps, focusing purely on the content and its position in the conversation tree.
+        Contributions are welcome!
+  
+        Ask me anything about the project or the conversations/posts here!
+      `;
+      setChatHistory([{ role: "assistant", content: welcomeMessage }]);
       return;
     }
-
+  
     try {
       // Add user's message to chat history
       setChatHistory((prev) => [...prev, { role: "user", content: searchQuery }]);
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "user",
-            content: searchQuery,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-      });
-
-      // Add AI's response to chat history
-      setChatHistory((prev) => [...prev, { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" }]);
+  
+      // Check if the query is related to posts
+      if (searchQuery.toLowerCase().includes("posts") || searchQuery.toLowerCase().includes("conversations")) {
+        // Fetch posts from Supabase
+        const { data: posts, error } = await supabase
+          .from("posts")
+          .select("*")
+          .order("id", { ascending: false })
+          .limit(5); // Fetch the latest 5 posts
+  
+        if (error) throw error;
+  
+        // Format posts for the AI
+        const postsContent = posts
+          .map((post) => `- ${post.content}`)
+          .join("\n");
+  
+        // Create a prompt for the AI
+        const prompt = `
+          The user asked: "${searchQuery}".
+          Here are some recent posts from Echo Field:
+          ${postsContent}
+  
+          Please provide a response based on the user's question and the posts above.
+        `;
+  
+        // Get AI response
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          model: "llama-3.3-70b-versatile",
+        });
+  
+        // Add AI's response to chat history
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" },
+        ]);
+      } else {
+        // Handle general questions
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: searchQuery,
+            },
+          ],
+          model: "llama-3.3-70b-versatile",
+        });
+  
+        // Add AI's response to chat history
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" },
+        ]);
+      }
     } catch (error) {
       console.error("Error fetching AI response:", error);
       toast({
@@ -162,30 +217,78 @@ const Index = () => {
       });
     }
   };
-
+  
   const handleAIChatInput = async (event: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
     event.preventDefault();
-
+  
     if (!aiChatInput.trim()) {
       return;
     }
-
+  
     try {
       // Add user's message to chat history
       setChatHistory((prev) => [...prev, { role: "user", content: aiChatInput }]);
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "user",
-            content: aiChatInput,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-      });
-
-      // Add AI's response to chat history
-      setChatHistory((prev) => [...prev, { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" }]);
+  
+      // Check if the query is related to posts
+      if (aiChatInput.toLowerCase().includes("posts") || aiChatInput.toLowerCase().includes("conversations")) {
+        // Fetch posts from Supabase
+        const { data: posts, error } = await supabase
+          .from("posts")
+          .select("*")
+          .order("id", { ascending: false })
+          .limit(5); // Fetch the latest 5 posts
+  
+        if (error) throw error;
+  
+        // Format posts for the AI
+        const postsContent = posts
+          .map((post) => `- ${post.content}`)
+          .join("\n");
+  
+        // Create a prompt for the AI
+        const prompt = `
+          The user asked: "${aiChatInput}".
+          Here are some recent posts from Echo Field:
+          ${postsContent}
+  
+          Please provide a response based on the user's question and the posts above.
+        `;
+  
+        // Get AI response
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          model: "llama-3.3-70b-versatile",
+        });
+  
+        // Add AI's response to chat history
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" },
+        ]);
+      } else {
+        // Handle general questions
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: aiChatInput,
+            },
+          ],
+          model: "llama-3.3-70b-versatile",
+        });
+  
+        // Add AI's response to chat history
+        setChatHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: chatCompletion.choices[0]?.message?.content || "" },
+        ]);
+      }
+  
       setAiChatInput("");
     } catch (error) {
       console.error("Error fetching AI response:", error);
@@ -254,31 +357,40 @@ const Index = () => {
         {aiChatVisible && (
           <div className="bg-background border rounded-lg shadow-lg p-4 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <Sparkle className="h-4 w-4" />
+              <div className="flex items-center gap-2">
+                <Sparkle className="h-5 w-5 text-blue-500" />
+                <h2 className="text-lg font-semibold">Echo Field AI</h2>
+              </div>
               <button
                 onClick={() => setAiChatVisible(false)}
-                className="p-1 hover:bg-gray-100 rounded-full"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
                 ✕
               </button>
             </div>
-            <div className="overflow-y-auto max-h-96 mb-4">
+            <div className="overflow-y-auto max-h-96 mb-4 pr-2">
               {chatHistory.map((message, index) => (
                 <div
                   key={index}
-                  className={`mb-3 ${
-                    message.role === "user" ? "text-right" : "text-left"
+                  className={`mb-4 ${
+                    message.role === "user" ? "flex justify-end" : ""
                   }`}
                 >
-                  <div
-                    className={`inline-block p-3 rounded-lg ${
-                      message.role === "user"
-                        ? "bg-blue-100 text-blue-900"
-                        : "bg-gray-100 text-gray-900"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
+                  {message.role === "user" ? (
+                    // User message in a bubble
+                    <div className="max-w-[80%] p-3 rounded-lg bg-blue-100 text-blue-900">
+                      <p>{message.content}</p>
+                    </div>
+                  ) : (
+                    // AI message in full width (same style as posts)
+                    <div className="w-full">
+                      <div className="text-gray-900 whitespace-pre-wrap">
+                        {message.content.split("\n").map((line, i) => (
+                          <p key={i}>{line}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
