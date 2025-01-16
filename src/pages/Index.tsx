@@ -3,7 +3,7 @@ import { Post } from "@/components/Post";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bot } from "lucide-react";
+import { Search, Bot, Info } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -149,7 +149,18 @@ const Index = () => {
               <Bot className="h-4 w-4" />
             </Button>
           </div>
-          <div className="w-1/4" />
+          <div className="w-1/4 flex justify-end">
+            <a
+              href="https://zanynik.github.io/echo-field/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:opacity-80 transition-opacity"
+            >
+              <Button variant="ghost" size="icon">
+                <Info className="h-4 w-4" />
+              </Button>
+            </a>
+          </div>
         </div>
 
         <div className="space-y-6">
