@@ -9,7 +9,32 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      posts: {
+        Row: {
+          content: string
+          id: number
+          parent_id: number | null
+        }
+        Insert: {
+          content: string
+          id?: number
+          parent_id?: number | null
+        }
+        Update: {
+          content?: string
+          id?: number
+          parent_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
