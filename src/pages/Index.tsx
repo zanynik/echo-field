@@ -3,9 +3,15 @@ import { Post } from "@/components/Post";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Bot, Info } from "lucide-react";
+import { Search, Bot, Info, Globe } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import SphereVisualization from "@/components/SphereVisualization";
 
 interface PostType {
   id: string;
@@ -150,6 +156,16 @@ const Index = () => {
             </Button>
           </div>
           <div className="w-1/4 flex justify-end">
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="p-2 hover:bg-gray-100 rounded-full">
+                  <Globe className="h-5 w-5" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px]">
+                <SphereVisualization />
+              </DialogContent>
+            </Dialog>
             <a
               href="https://zanynik.github.io/echo-field/"
               target="_blank"
