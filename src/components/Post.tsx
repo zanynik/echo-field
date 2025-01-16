@@ -18,7 +18,7 @@ interface PostProps {
   depth?: number;
 }
 
-export const Post = ({ id, content, comments, onUpdate, depth = 0 }: PostProps) => {
+export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostProps) => {
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const { toast } = useToast();
@@ -94,7 +94,7 @@ export const Post = ({ id, content, comments, onUpdate, depth = 0 }: PostProps) 
         
         {showComments && (
           <div className="w-full space-y-4">
-            {comments.map((comment) => (
+            {comments && comments.map((comment) => (
               <Post
                 key={comment.id}
                 id={comment.id}
