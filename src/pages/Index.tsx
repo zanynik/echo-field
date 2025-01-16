@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { CreatePost } from "@/components/CreatePost";
 import { Post } from "@/components/Post";
-import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
@@ -23,21 +21,21 @@ const Index = () => {
           <h1 className="text-4xl font-bold">Forum</h1>
           <ThemeToggle />
         </div>
-        
-        <Card className="p-6">
-          <CreatePost onPostCreated={loadPosts} />
-        </Card>
 
         <div className="space-y-6">
-          {posts.map((post) => (
-            <Post
-              key={post.id}
-              id={post.id}
-              content={post.content}
-              comments={post.comments}
-              onUpdate={loadPosts}
-            />
-          ))}
+          {posts.length === 0 ? (
+            <div className="text-center text-xl">hello, world</div>
+          ) : (
+            posts.map((post) => (
+              <Post
+                key={post.id}
+                id={post.id}
+                content={post.content}
+                comments={post.comments}
+                onUpdate={loadPosts}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

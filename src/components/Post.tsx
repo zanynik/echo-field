@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/use-theme";
 
 interface Comment {
   id: string;
@@ -22,6 +23,7 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   const handleAddComment = () => {
     if (!newComment.trim()) {
@@ -35,7 +37,6 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
 
     const posts = JSON.parse(localStorage.getItem("posts") || "[]");
     
-    // Helper function to add comment to nested structure
     const addCommentToStructure = (items: any[], targetId: string): boolean => {
       for (let i = 0; i < items.length; i++) {
         if (items[i].id === targetId) {
@@ -78,8 +79,15 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
     });
   };
 
+  const hasNoComments = comments.length === 0;
+  const themeBasedClass = hasNoComments
+    ? theme === 'dark'
+      ? 'bg-white/10 text-white'
+      : 'bg-black/10 text-black'
+    : '';
+
   return (
-    <Card className={`w-full ${depth > 0 ? "ml-4" : ""}`}>
+    <Card className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
       <CardContent className="pt-6">
         <p className="whitespace-pre-wrap">{content}</p>
       </CardContent>
