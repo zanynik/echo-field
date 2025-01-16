@@ -19,12 +19,12 @@ const buildHierarchy = (posts: PostType[], highlightedId?: string): PostType[] =
   const rootPosts: PostType[] = [];
 
   // First pass: Create map of all posts
-  posts.forEach(post => {
+  posts.forEach((post) => {
     postMap.set(post.id, { ...post, comments: [] });
   });
 
   // Second pass: Build hierarchy
-  posts.forEach(post => {
+  posts.forEach((post) => {
     const postWithComments = postMap.get(post.id)!;
     if (post.parent_id) {
       const parentPost = postMap.get(post.parent_id);
@@ -39,7 +39,7 @@ const buildHierarchy = (posts: PostType[], highlightedId?: string): PostType[] =
 
   // If we have a highlighted post, move it to the top
   if (highlightedId) {
-    const highlightIndex = rootPosts.findIndex(post => post.id === highlightedId);
+    const highlightIndex = rootPosts.findIndex((post) => post.id === highlightedId);
     if (highlightIndex > 0) {
       const [highlightedPost] = rootPosts.splice(highlightIndex, 1);
       rootPosts.unshift(highlightedPost);
@@ -54,23 +54,24 @@ const Index = () => {
   const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const loadPosts = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('id', { ascending: false });
-      
+        .from("posts")
+        .select("*")
+        .order("id", { ascending: false });
+
       if (error) throw error;
 
       const hierarchicalPosts = buildHierarchy(data || []);
       setPosts(hierarchicalPosts);
       setFilteredPosts(hierarchicalPosts);
     } catch (error) {
-      console.error('Error loading posts:', error);
+      console.error("Error loading posts:", error);
       toast({
         title: "Error",
         description: "Failed to load posts",
@@ -85,50 +86,30 @@ const Index = () => {
     loadPosts();
   }, []);
 
-  const handleSearch = async () => {
-    try {
-      setIsLoading(true);
-      if (!searchQuery.trim()) {
-        setFilteredPosts(posts);
-        return;
-      }
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearch(event);
+    }
+  };
 
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .ilike('content', `%${searchQuery}%`)
-        .is('parent_id', null) // Only search root posts
-        .order('id', { ascending: false });
+  const handleSearch = (event: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      setFilteredPosts(posts);
+      return;
+    }
 
-      if (error) throw error;
+    // Find the first matching post that contains the search term
+    const matchingPost = posts.find(post => 
+      post.content.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-      if (data && data.length > 0) {
-        // Randomly select one of the matching posts
-        const randomIndex = Math.floor(Math.random() * data.length);
-        const highlightedPost = data[randomIndex];
-
-        // Get all posts to build the complete hierarchy
-        const { data: allPosts, error: allPostsError } = await supabase
-          .from('posts')
-          .select('*')
-          .order('id', { ascending: false });
-
-        if (allPostsError) throw allPostsError;
-
-        const hierarchicalPosts = buildHierarchy(allPosts || [], highlightedPost.id);
-        setFilteredPosts(hierarchicalPosts);
-      } else {
-        setFilteredPosts([]);
-      }
-    } catch (error) {
-      console.error('Error searching posts:', error);
-      toast({
-        title: "Error",
-        description: "Failed to search posts",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    if (matchingPost) {
+      const hierarchicalPost = buildHierarchy([matchingPost]);
+      setFilteredPosts(hierarchicalPost);
+    } else {
+      setFilteredPosts([]);
     }
   };
 
@@ -137,6 +118,13 @@ const Index = () => {
       title: "AI Assistant",
       description: "AI functionality coming soon!",
     });
+  };
+
+  const toggleCommentVisibility = (postId: string) => {
+    setExpandedComments((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
   };
 
   return (
@@ -149,9 +137,9 @@ const Index = () => {
           <div className="flex gap-2 items-center w-1/2">
             <Input
               type="text"
-              placeholder="Search posts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="w-full"
             />
             <Button variant="ghost" onClick={handleSearch}>
@@ -166,9 +154,9 @@ const Index = () => {
 
         <div className="space-y-6">
           {isLoading ? (
-            <div className="text-center">Loading posts...</div>
+            <div className="text-center">...</div>
           ) : filteredPosts.length === 0 ? (
-            <div className="text-center">No posts found</div>
+            <div className="text-center">X</div>
           ) : (
             filteredPosts.map((post, index) => (
               <Post
@@ -177,6 +165,8 @@ const Index = () => {
                 content={post.content}
                 comments={post.comments || []}
                 onUpdate={loadPosts}
+                showComments={expandedComments[post.id] || false}
+                onToggleComments={() => toggleCommentVisibility(post.id)}
                 isLast={index === 0}
               />
             ))
