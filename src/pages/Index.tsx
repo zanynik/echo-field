@@ -307,6 +307,25 @@ const Index = () => {
     }));
   };
 
+  const getVisiblePostIds = (posts: PostType[]): string[] => {
+    const ids: string[] = [];
+
+    const collectIds = (post: PostType) => {
+      console.log(`Collecting ID: ${post.id}`); // Debugging line
+      ids.push(post.id);
+      if (post.comments && expandedComments[post.id]) {
+        console.log(`Expanding comments for ID: ${post.id}`); // Debugging line
+        post.comments.forEach(collectIds);
+      }
+    };
+
+    posts.forEach(collectIds);
+    return ids;
+  };
+
+  const visiblePostIds = getVisiblePostIds(filteredPosts);
+  console.log("Visible Post IDs:", visiblePostIds); // Debugging line
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-8 space-y-8">
@@ -424,7 +443,7 @@ const Index = () => {
             ))
           )}
         </div>
-        <SphereVisualization />
+        <SphereVisualization highlightedIds={visiblePostIds} />
       </div>
     </div>
   );
