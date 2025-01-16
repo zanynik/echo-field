@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
+import { MessageCircle, Pencil } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -17,11 +18,13 @@ interface PostProps {
   comments: Comment[];
   onUpdate: () => void;
   depth?: number;
+  isFirstPost?: boolean;
 }
 
-export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostProps) => {
+export const Post = ({ id, content, comments = [], onUpdate, depth = 0, isFirstPost = false }: PostProps) => {
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
+  const [showWriteComment, setShowWriteComment] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
 
@@ -71,6 +74,7 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
 
     localStorage.setItem("posts", JSON.stringify(posts));
     setNewComment("");
+    setShowWriteComment(false);
     onUpdate();
     
     toast({
@@ -92,13 +96,54 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
         <p className="whitespace-pre-wrap">{content}</p>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <Button
-          variant="ghost"
-          className="w-full"
-          onClick={() => setShowComments(!showComments)}
-        >
-          {showComments ? "Hide Comments" : "Show Comments"}
-        </Button>
+        {isFirstPost ? (
+          <div className="w-full space-y-4">
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setShowComments(!showComments)}
+              >
+                <MessageCircle className="mr-2" />
+                {showComments ? "Hide Comments" : "Show Comments"}
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setShowWriteComment(!showWriteComment)}
+              >
+                <Pencil className="mr-2" />
+                {showWriteComment ? "Cancel" : "Write Comment"}
+              </Button>
+            </div>
+
+            {showWriteComment && (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="resize-none"
+                />
+                <Button
+                  onClick={handleAddComment}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Submit Comment
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => setShowComments(!showComments)}
+          >
+            {showComments ? "Hide Comments" : "Show Comments"}
+          </Button>
+        )}
         
         {showComments && (
           <div className="w-full space-y-4">
@@ -112,22 +157,6 @@ export const Post = ({ id, content, comments = [], onUpdate, depth = 0 }: PostPr
                 depth={depth + 1}
               />
             ))}
-            
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Write a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="resize-none"
-              />
-              <Button
-                onClick={handleAddComment}
-                className="w-full"
-                variant="outline"
-              >
-                Comment
-              </Button>
-            </div>
           </div>
         )}
       </CardFooter>
