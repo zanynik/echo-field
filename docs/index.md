@@ -1,3 +1,9 @@
+---
+title: Echo Field
+description: An experimental social space where thoughts echo endlessly through nested conversations.
+layout: default
+---
+
 # Echo Field
 
 An experimental social space where thoughts echo endlessly through nested conversations. Built with React and TypeScript.
