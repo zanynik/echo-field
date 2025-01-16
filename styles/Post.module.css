@@ -1,0 +1,17 @@
+.lastPost {
+  background-color: var(--opposite-bg);
+  color: var(--opposite-text);
+} 
+
+.interactionButton {
+  transition: all 0.3s;
+}
+
+.interactionButton:hover svg,
+.interactionButton.active svg {
+  fill: var(--opposite-text);
+}
+
+.interactionButton.active {
+  color: var(--accent-color);
+} 
