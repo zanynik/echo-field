@@ -100,26 +100,32 @@ const SphereVisualization = () => {
 
     const positions: number[] = [];
 
-    const addDots = (node: TreeNode, parentPosition = new THREE.Vector3(0, 0, 0), depth = 0) => {
-      // Add position for current node
-      positions.push(parentPosition.x, parentPosition.y, parentPosition.z);
-
-      if (node.children.length > 0) {
-        const radius = depth * 1.5 + 1; // Maintain spacing between nodes
-        const angleIncrement = (2 * Math.PI) / node.children.length;
-
-        node.children.forEach((child, index) => {
-          const angle = angleIncrement * index;
-          const x = parentPosition.x + radius * Math.cos(angle);
-          const y = parentPosition.y + radius * Math.sin(angle);
-          const z = parentPosition.z;
-          const childPosition = new THREE.Vector3(x, y, z);
-
-          // Recursively add child nodes
-          addDots(child, childPosition, depth + 1);
-        });
-      }
-    };
+    const addDots = (node, parentPosition = new THREE.Vector3(0, 0, 0), depth = 0) => {
+        // Add position for current node
+        positions.push(parentPosition.x, parentPosition.y, parentPosition.z);
+      
+        if (node.children.length > 0) {
+          const radius = depth * 1.5 + 1; // Radius increases with depth
+          const angleIncrementAzimuth = (2 * Math.PI) / node.children.length; // Azimuthal angle (longitude)
+          const angleIncrementPolar = Math.PI / node.children.length; // Polar angle (latitude)
+      
+          node.children.forEach((child, index) => {
+            // Calculate angles for this child
+            const azimuth = angleIncrementAzimuth * index; // Longitude
+            const polar = angleIncrementPolar * index; // Latitude
+      
+            // Convert spherical coordinates to Cartesian coordinates
+            const x = parentPosition.x + radius * Math.sin(polar) * Math.cos(azimuth);
+            const y = parentPosition.y + radius * Math.sin(polar) * Math.sin(azimuth);
+            const z = parentPosition.z + radius * Math.cos(polar);
+      
+            const childPosition = new THREE.Vector3(x, y, z);
+      
+            // Recursively add child nodes
+            addDots(child, childPosition, depth + 1);
+          });
+        }
+      };
 
     addDots(tree);
     dotGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));

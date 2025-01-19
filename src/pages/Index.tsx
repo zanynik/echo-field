@@ -6,11 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Search, Sparkle, Info, Globe } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import SphereVisualization from "@/components/SphereVisualization";
 import Groq from "groq-sdk";
 
@@ -312,17 +307,17 @@ const Index = () => {
             <ThemeToggle />
           </div>
           <div className="flex gap-2 items-center w-1/2">
-            <Input
+            {/* <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
               className="w-full"
-            />
+            /> */}
             {/* <Button variant="ghost" onClick={handleSearch}>
               <Search className="h-4 w-4" />
             </Button> */}
-            <Button variant="ghost" onClick={handleAIClick}>
+            <Button variant="ghost" onClick={handleAIClick} className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
               <Sparkle className="h-4 w-4" />
             </Button>
           </div>
