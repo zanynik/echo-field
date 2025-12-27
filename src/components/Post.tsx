@@ -5,22 +5,20 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
 import { MessageCircle, Send, Pencil } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { publishPost, NostrPost } from "@/lib/nostr";
 
-interface Comment {
-  id: string;
-  content: string;
-  comments?: Comment[];
-}
-
+// using NostrPost from lib instead of local interface if possible, or mapping
+// For now, let's keep the prop interface simple but compatible
 interface PostProps {
   id: string;
   content: string;
-  comments?: Comment[];
+  comments?: NostrPost[];
   onUpdate: () => void;
   depth?: number;
   isLast?: boolean;
   initialShowComments?: boolean;
+
+  expandedIds?: Set<string>;
 }
 
 export const Post = ({
@@ -31,12 +29,18 @@ export const Post = ({
   depth = 0,
   isLast = false,
   initialShowComments = false,
+  expandedIds,
 }: PostProps) => {
   const [newComment, setNewComment] = useState("");
   const [showWriteComment, setShowWriteComment] = useState(false);
   const [showComments, setShowComments] = useState(initialShowComments);
   const { toast } = useToast();
   const { theme } = useTheme();
+
+  // Check if this post should be expanded based on expandedIds context
+  if (expandedIds?.has(id) && !showComments) {
+    setShowComments(true);
+  }
 
   const handleContentClick = () => {
     if (comments.length > 0) {
@@ -55,33 +59,26 @@ export const Post = ({
     }
 
     try {
-      const { data, error } = await supabase
-        .from("posts")
-        .insert([
-          {
-            content: newComment,
-            parent_id: id,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
+      await publishPost(newComment, id); // id is the parent_id here
 
       setNewComment("");
       setShowWriteComment(false);
       setShowComments(true);
-      onUpdate(); // Reload posts after adding a comment
+
+      // Small delay to allow relay propagation before refresh, though optimistic would be better
+      setTimeout(() => {
+        onUpdate();
+      }, 1000);
 
       toast({
         title: "Success",
-        description: "Comment added successfully",
+        description: "Comment published to NOSTR network",
       });
     } catch (error) {
       console.error("Error adding comment:", error);
       toast({
         title: "Error",
-        description: "Failed to add comment",
+        description: "Failed to publish comment. Make sure you are logged in.",
         variant: "destructive",
       });
     }
@@ -93,17 +90,28 @@ export const Post = ({
       : "bg-black/90 text-white"
     : "";
 
-  const iconColor = theme === "dark" ? "white" : "black";
-  const oppositeColor = theme === "dark" ? "black" : "white";
+  // Logic for icon colors:
+  // If highlighted (isLast):
+  //   - Dark Theme: bg is white -> icon black
+  //   - Light Theme: bg is black -> icon white
+  // If normal:
+  //   - Dark Theme: bg is dark -> icon white
+  //   - Light Theme: bg is white -> icon black
+
+  const iconColor = theme === "dark"
+    ? (isLast ? "black" : "white")
+    : (isLast ? "white" : "black");
+
+  const oppositeColor = iconColor; // Active state fill should match the icon stroke color
 
   const inputTextColor = isLast
     ? theme === "dark"
       ? "text-black placeholder:text-black/60"
       : "text-black placeholder:text-black/60"
-    : "";
+    : "text-foreground placeholder:text-muted-foreground";
 
   return (
-    <Card className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
+    <Card id={id} className={`w-full ${depth > 0 ? "ml-4" : ""} ${themeBasedClass}`}>
       <CardContent
         className={`pt-6 ${comments.length > 0 ? "cursor-pointer" : ""}`}
         onClick={handleContentClick}
@@ -122,7 +130,7 @@ export const Post = ({
                 <MessageCircle
                   className="transition-all duration-200"
                   fill={showComments ? oppositeColor : "transparent"}
-                  color={isLast ? (theme === "dark" ? "black" : "white") : iconColor}
+                  color={iconColor}
                 />
               </Button>
             )}
@@ -134,7 +142,7 @@ export const Post = ({
               <Pencil
                 className="transition-all duration-200"
                 fill={showWriteComment ? oppositeColor : "transparent"}
-                color={isLast ? (theme === "dark" ? "black" : "white") : iconColor}
+                color={iconColor}
               />
             </Button>
           </div>
@@ -153,7 +161,7 @@ export const Post = ({
                 variant="outline"
               >
                 <Send
-                  color={isLast ? (theme === "dark" ? "black" : "black") : iconColor}
+                  color={iconColor}
                 />
               </Button>
             </div>
@@ -171,6 +179,7 @@ export const Post = ({
                 onUpdate={onUpdate}
                 depth={depth + 1}
                 initialShowComments={false}
+                expandedIds={expandedIds}
               />
             ))}
           </div>
