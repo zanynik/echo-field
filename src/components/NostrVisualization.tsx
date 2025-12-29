@@ -56,33 +56,55 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
         const centerX = dimensions.width / 2;
         const centerY = dimensions.height / 2;
 
-        const rootNode: Node = {
-            id: 'root-virtual',
-            x: centerX,
-            y: centerY,
-            radius: 40,
-            label: 'Hello Nostr World',
-            level: 0
-        };
+        let rootNode: Node;
+        let startLevelNodes: NostrPost[];
+        let isVirtualRoot = false;
+
+        // If we have exactly one root post, use it as the center
+        if (posts.length === 1) {
+            const realRoot = posts[0];
+            rootNode = {
+                id: realRoot.id,
+                x: centerX,
+                y: centerY,
+                radius: 40,
+                // Label with truncate
+                label: realRoot.content.length > 20 ? realRoot.content.substring(0, 20) + '...' : realRoot.content,
+                post: realRoot,
+                level: 0
+            };
+            startLevelNodes = realRoot.comments || [];
+        } else {
+            // Virtual root for multiple disconnected threads
+            isVirtualRoot = true;
+            rootNode = {
+                id: 'root-virtual',
+                x: centerX,
+                y: centerY,
+                radius: 40,
+                label: 'Echo Field',
+                level: 0
+            };
+            startLevelNodes = posts;
+        }
 
         const newNodes: Node[] = [rootNode];
         const newLinks: Link[] = [];
 
-        // Filter for top-level posts (those that don't satisfy parent_id check within the fetched set is tricky, 
-        // relying on the passed hierarchical structure is safer if available, but here we got flat list usually?
-        // Actually, the index passes hierarchical posts. Let's traverse them.)
+        const totalStartNodes = startLevelNodes.length;
 
-        // Wait, index passes hierarchical posts! So `posts` are the roots.
+        // If the root has no comments/posts to show
+        if (totalStartNodes === 0 && !isVirtualRoot) {
+            setNodes(newNodes);
+            setLinks(newLinks);
+            return;
+        }
 
-        const totalRoots = posts.length;
-        if (totalRoots === 0) return;
-
-        // Level 1: The actual posts shown in the list
-        // Distribute them in a circle around the center
+        // Level 1 Ring
         const level1Radius = Math.min(dimensions.width, dimensions.height) * 0.25;
 
-        posts.forEach((post, index) => {
-            const angle = (index / totalRoots) * 2 * Math.PI;
+        startLevelNodes.forEach((post, index) => {
+            const angle = (index / totalStartNodes) * 2 * Math.PI;
             const x = centerX + level1Radius * Math.cos(angle);
             const y = centerY + level1Radius * Math.sin(angle);
 
@@ -90,9 +112,9 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
                 id: post.id,
                 x,
                 y,
-                radius: 10,
+                radius: 12, // Slightly larger
                 post: post,
-                label: post.content.substring(0, 10) + '...',
+                label: '', // No label for level 1 to reduce clutter? Or keep it?
                 level: 1,
                 angle
             };
@@ -100,30 +122,21 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
             newNodes.push(postNode);
             newLinks.push({ source: rootNode, target: postNode });
 
-            // Level 2: Comments on these posts
+            // Level 2: Comments on these nodes
             if (post.comments && post.comments.length > 0) {
-                const level2Radius = 60; // Distance from parent
-                // Spread comments in a fan shape outward from the parent
+                const level2Radius = 70; // Distance from parent
                 const startAngle = angle - Math.PI / 4;
                 const totalSpread = Math.PI / 2;
 
                 post.comments.forEach((comment, cIndex) => {
-                    // Simple logic for now: just one level deep visualization to keep it clean-ish or recursive?
-                    // Let's do 1 level deep for "Spokes" idea
-                    const commentAngle = startAngle + (cIndex / Math.max(1, post.comments.length - 1)) * totalSpread;
-                    // Adjust angle to point away from center roughly
-                    // Actually, just pointing outwards from the parent in the direction of parent's angle
-
-                    // Better approach for level 2: 
-                    // Extend the radius from center, but add some jitter or fan
-                    const l2X = x + level2Radius * Math.cos(angle + (cIndex - post.comments.length / 2) * 0.2);
-                    const l2Y = y + level2Radius * Math.sin(angle + (cIndex - post.comments.length / 2) * 0.2);
+                    const l2X = x + level2Radius * Math.cos(angle + (cIndex - post.comments.length / 2) * 0.3);
+                    const l2Y = y + level2Radius * Math.sin(angle + (cIndex - post.comments.length / 2) * 0.3);
 
                     const commentNode: Node = {
                         id: comment.id,
                         x: l2X,
                         y: l2Y,
-                        radius: 6,
+                        radius: 8,
                         post: comment,
                         level: 2
                     };

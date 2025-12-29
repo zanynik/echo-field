@@ -63,7 +63,9 @@ export const loginWithNostr = async () => {
   await waitForNostr();
 
   if (window.nostr) {
+    // Always assign the signer here to ensure it's set
     ndk.signer = new NDKNip07Signer();
+
     // blockUntilReady can hang if extension doesn't respond, adding a race
     await Promise.race([
       ndk.signer.blockUntilReady(),
@@ -140,3 +142,33 @@ export const publishPost = async (content: string, parentId?: string) => {
   await event.publish();
   return mapEventToPost(event);
 }
+
+export const fetchThread = async (rootId: string): Promise<NostrPost[]> => {
+  const ndk = await initNDK();
+
+  // 1. Fetch the root event
+  const rootEvent = await ndk.fetchEvent(rootId);
+  const posts: NostrPost[] = [];
+
+  if (rootEvent) {
+    posts.push(mapEventToPost(rootEvent));
+  }
+
+  // 2. Fetch direct replies (events tagging this rootId)
+  // Note: NIP-10 standardizes 'e' tags. NDK might have helpers but raw filter is safe.
+  const filter: NDKFilter = {
+    kinds: [1],
+    "#e": [rootId],
+    limit: 500,
+  };
+
+  const events = await ndk.fetchEvents(filter);
+
+  for (const event of events) {
+    posts.push(mapEventToPost(event));
+  }
+
+  // Sort by created_at ascending so conversation flows naturally in time, 
+  // though buildHierarchy will handle tree structure.
+  return posts.sort((a, b) => a.created_at - b.created_at);
+};

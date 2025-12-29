@@ -19,6 +19,7 @@ interface PostProps {
   initialShowComments?: boolean;
 
   expandedIds?: Set<string>;
+  theme?: "light" | "dark" | "system";
 }
 
 export const Post = ({
@@ -30,12 +31,13 @@ export const Post = ({
   isLast = false,
   initialShowComments = false,
   expandedIds,
+  theme, // Add theme here
 }: PostProps) => {
   const [newComment, setNewComment] = useState("");
   const [showWriteComment, setShowWriteComment] = useState(false);
   const [showComments, setShowComments] = useState(initialShowComments);
   const { toast } = useToast();
-  const { theme } = useTheme();
+  // const { theme } = useTheme(); // Use prop instead
 
   // Check if this post should be expanded based on expandedIds context
   if (expandedIds?.has(id) && !showComments) {
@@ -180,6 +182,7 @@ export const Post = ({
                 depth={depth + 1}
                 initialShowComments={false}
                 expandedIds={expandedIds}
+                theme={theme}
               />
             ))}
           </div>
