@@ -1,41 +1,30 @@
 # Echo Field
+An experimental art project built on [Nostr](https://nostr.com/).
 
-An experimental social space where thoughts echo endlessly through nested conversations. Built with React and TypeScript.
+## 🌀 Concept
 
-## 🌀 About
+Echo Field is an art project designed to create the world's largest **infinite human chain of comments**.
 
-Echo Field is an art project exploring the concept of infinite conversation nesting. Each comment can spawn its own thread of responses, creating a fractal-like structure of human interaction.
+It visualizes conversations as they branch and evolve in digital spaces. Like echoes in a canyon, each comment has the potential to spawn infinite reflections, creating emergent fractal patterns of human interaction.
 
 ## 💭 Philosophy
 
-Echo Field explores how conversations branch and evolve in digital spaces. Like echoes in a canyon, each comment has the potential to spawn infinite reflections, creating emergent patterns of dialogue.
+There are long threaded chains of comments on social networks like Reddit and Facebook, but they are all limited. They live on private servers, controlled by single entities. A moderator can delete a thread, a company can shut down a server, or an algorithm can hide your voice.
 
-The project intentionally strips away traditional social media elements like usernames, likes, counts of comments and timestamps, focusing purely on the content and its position in the conversation tree.
+**Echo Field is different.**
 
-Key features:
-- Infinitely nestable comments
-- Visualize the nest
-- Dark/light theme switching
-- Minimalist interface
-- Thread collapsing
+It is built on the **Nostr** open protocol.
+- **Unstoppable**: The data lives on thousands of independent relays. No single person or company controls it.
+- **Permanent**: Once signed with your key, your voice cannot be deleted or censored by a central authority.
+- **Infinite**: The protocol supports infinite nesting and extension.
 
-## 🚀 Getting Started
+This project is a visualization of that power. We are building a permanent, unbreakable chain of human thought.
 
-Make sure you have [Node.js](https://nodejs.org/) installed on your system.
+## 🚀 Participating
 
-```sh
-# Clone the repository
-git clone <YOUR_GIT_URL>
-
-# Navigate to project directory
-cd digital-canvas
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
+1. **Login**: Use a Nostr extension (like Alby) or your private key (`nsec`).
+2. **Post**: Add your thought to the chain.
+3. **Explore**: Traverse the infinite nest of echoes.
 
 ## 🛠 Tech Stack
 
@@ -43,14 +32,10 @@ npm run dev
 - Vite
 - shadcn/ui components
 - Tailwind CSS
-- Supabase (for data persistence)
+- [NDK](https://github.com/nostr-dev-kit/ndk) (Nostr Dev Kit)
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to:
-- Open issues for bugs or suggestions
-- Submit pull requests
-- Fork and experiment
 ---
 
-Created with ❤️ & curiosity by zanynik (Nikhil)
+**Create a human chain of comments. Visualize them. Let them echo forever.**
+
+Created with ❤️ & curiosity by **zanynik** (Nikhil).

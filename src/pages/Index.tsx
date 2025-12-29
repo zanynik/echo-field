@@ -271,7 +271,7 @@ const Index = () => {
             </div>
             <div className="w-1/4 flex justify-end">
               <a
-                href="https://zanynik.github.io/echo-field/"
+                href="https://github.com/zanynik/echo-field"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:opacity-80 transition-opacity"
