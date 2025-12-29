@@ -89,7 +89,7 @@ const Index = () => {
     }
 
     // 2. Hide graph (optional based on preference, but user suggested it)
-    setIsGraphVisible(false);
+    // setIsGraphVisible(false);
 
     // 3. Scroll to post
     // Wait for expansion to render
@@ -255,7 +255,7 @@ const Index = () => {
             <div className="w-1/4">
               <ThemeToggle />
             </div>
-            <div className="flex gap-2 items-center justify-center w-1/2">
+            <div className="flex gap-4 items-center justify-center w-1/2">
               <Button variant="ghost" onClick={() => setIsGraphVisible(!isGraphVisible)}>
                 <Star className={`h-4 w-4 ${isGraphVisible ? "fill-current" : ""}`} />
               </Button>
@@ -265,7 +265,7 @@ const Index = () => {
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground hidden md:inline">{user.profile?.name || user.npub.slice(0, 8)}...</span>
+                  <span className="text-sm font-medium">{user.profile?.name || user.profile?.displayName || user.npub.slice(0, 8) + "..."}</span>
                 </div>
               )}
             </div>
@@ -319,21 +319,7 @@ const Index = () => {
         )}
 
         {/* Posts Section */}
-        {user && (
-          <div className="bg-card border rounded-lg p-4 shadow-sm mb-6">
-            <div className="flex gap-2">
-              <Input
-                placeholder="What's on your mind? (Public NOSTR Note)"
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleCreatePost()}
-              />
-              <Button onClick={handleCreatePost} disabled={isPublishing}>
-                {isPublishing ? '...' : <Send className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        )}
+
         <div className="space-y-6">
           {isLoading ? (
             <div className="text-center">...</div>
