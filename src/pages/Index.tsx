@@ -3,18 +3,14 @@ import { Post } from "@/components/Post";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Info, Send, Star } from "lucide-react";
+import { Search, Info, Send, Star, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-import { fetchPosts, publishPost, loginWithNostr, NostrPost, fetchThread } from "@/lib/nostr";
+import { fetchPosts, publishPost, loginWithNostr, loginWithSecretKey, NostrPost, fetchThread } from "@/lib/nostr";
 import { nip19 } from 'nostr-tools';
 import { NDKUser } from "@nostr-dev-kit/ndk";
 import NostrVisualization from "@/components/NostrVisualization";
 import { useTheme } from "@/hooks/use-theme";
-
-// Using NostrPost as the type
-// But for compatibility with existing strict logic in buildHierarchy, let's keep a flexible type or just use NostrPost everywhere
-// buildHierarchy expects comments array to be mutable/present.
 
 
 const buildHierarchy = (posts: NostrPost[], highlightedId?: string): NostrPost[] => {
@@ -62,6 +58,12 @@ const Index = () => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [isGraphVisible, setIsGraphVisible] = useState(true);
   const { theme } = useTheme();
+
+  // Login related state
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [secretKeyInput, setSecretKeyInput] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
 
   // Helper to find path to a node
   const findPathToNode = (nodes: NostrPost[], targetId: string, currentPath: string[] = []): string[] | null => {
@@ -153,6 +155,7 @@ const Index = () => {
 
   const handleLogin = async () => {
     try {
+      // Try extension first
       const user = await loginWithNostr();
       setUser(user);
       toast({
@@ -160,11 +163,31 @@ const Index = () => {
         description: `Logged in as ${user.npub.slice(0, 8)}...`,
       });
     } catch (error: any) {
+      console.log("Extension login failed, showing manual login dialog");
+      setShowLoginDialog(true);
+    }
+  }
+
+  const handleManualLogin = async () => {
+    if (!secretKeyInput.trim()) return;
+    setIsLoggingIn(true);
+    try {
+      const user = await loginWithSecretKey(secretKeyInput.trim());
+      setUser(user);
+      setShowLoginDialog(false);
+      setSecretKeyInput("");
+      toast({
+        title: "Success",
+        description: `Logged in as ${user.npub.slice(0, 8)}...`,
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to login with extension",
+        description: error.message || "Invalid key",
         variant: "destructive"
       });
+    } finally {
+      setIsLoggingIn(false);
     }
   }
 
@@ -224,7 +247,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       <div className="container py-8 space-y-8">
 
         <div className="sticky-header sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-4 border-b mb-8 -mx-4 px-4 pt-4">
@@ -266,6 +289,34 @@ const Index = () => {
             </div>
           )}
         </div>
+
+        {/* Login Modal */}
+        {showLoginDialog && (
+          <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-background border rounded-lg shadow-lg p-6 w-full max-w-md animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Login to Nostr</h2>
+                <Button variant="ghost" size="icon" onClick={() => setShowLoginDialog(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enter your private key (starts with nsec...) to login. Your key is only used locally to sign events.
+              </p>
+              <div className="space-y-4">
+                <Input
+                  type="password"
+                  placeholder="nsec1..."
+                  value={secretKeyInput}
+                  onChange={(e) => setSecretKeyInput(e.target.value)}
+                />
+                <Button className="w-full" onClick={handleManualLogin} disabled={isLoggingIn}>
+                  {isLoggingIn ? "Verifying..." : "Login"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Posts Section */}
         {user && (

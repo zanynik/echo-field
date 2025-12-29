@@ -1,4 +1,5 @@
-import NDK, { NDKEvent, NDKNip07Signer, NDKFilter, NDKKind } from "@nostr-dev-kit/ndk";
+import NDK, { NDKEvent, NDKNip07Signer, NDKPrivateKeySigner, NDKFilter, NDKKind } from "@nostr-dev-kit/ndk";
+import { nip19 } from "nostr-tools";
 
 // Default relays to connect to
 const DEFAULT_RELAYS = [
@@ -75,6 +76,34 @@ export const loginWithNostr = async () => {
     return user;
   } else {
     throw new Error("No NIP-07 extension found");
+  }
+}
+
+export const loginWithSecretKey = async (key: string) => {
+  const ndk = await initNDK();
+
+  let privateKey = key;
+
+  // If it starts with nsec, decode it
+  if (key.startsWith('nsec')) {
+    try {
+      const { data } = nip19.decode(key);
+      privateKey = data as string;
+    } catch (e) {
+      throw new Error("Invalid nsec format");
+    }
+  }
+
+  try {
+    const signer = new NDKPrivateKeySigner(privateKey);
+    ndk.signer = signer;
+
+    // Validate by fetching user
+    const user = await signer.user();
+    await user.fetchProfile();
+    return user;
+  } catch (e) {
+    throw new Error("Invalid private key");
   }
 }
 
