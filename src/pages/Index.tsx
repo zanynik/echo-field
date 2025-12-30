@@ -63,6 +63,7 @@ const Index = () => {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [secretKeyInput, setSecretKeyInput] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
 
 
   // Helper to find path to a node
@@ -270,16 +271,9 @@ const Index = () => {
                   <span className="text-sm font-medium">{user.profile?.name || user.profile?.displayName || user.npub.slice(0, 8) + "..."}</span>
                 </div>
               )}
-              <a
-                href="https://github.com/zanynik/echo-field"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-              >
-                <Button variant="ghost" size="icon">
-                  <Info className="h-4 w-4" />
-                </Button>
-              </a>
+              <Button variant="ghost" size="icon" onClick={() => setShowInfoDialog(true)}>
+                <Info className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
@@ -313,6 +307,65 @@ const Index = () => {
                 <Button className="w-full" onClick={handleManualLogin} disabled={isLoggingIn}>
                   {isLoggingIn ? "Verifying..." : "Login"}
                 </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info Modal */}
+        {showInfoDialog && (
+          <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-background border rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200 flex flex-col">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Echo Field</h2>
+                <Button variant="ghost" size="icon" onClick={() => setShowInfoDialog(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+                <section>
+                  <h3 className="text-xl font-semibold mb-2">🌀 Concept</h3>
+                  <p className="text-muted-foreground">
+                    Echo Field is an art project designed to create the world's largest <strong>infinite human chain of comments</strong>.
+                  </p>
+                  <p className="text-muted-foreground mt-2">
+                    It visualizes conversations as they branch and evolve in digital spaces. Like echoes in a canyon, each comment has the potential to spawn infinite reflections, creating emergent fractal patterns of human interaction.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-semibold mb-2">💭 Philosophy</h3>
+                  <p className="text-muted-foreground mb-2">
+                    There are long threaded chains of comments on social networks like Reddit and Facebook, but they are all limited. They live on private servers, controlled by single entities.
+                  </p>
+                  <p className="text-muted-foreground font-medium mb-2">
+                    Echo Field is different.
+                  </p>
+                  <p className="text-muted-foreground mb-2">
+                    It is built on the <strong>Nostr</strong> open protocol.
+                  </p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-4">
+                    <li><strong>Unstoppable</strong>: The data lives on thousands of independent relays. No single person or company controls it.</li>
+                    <li><strong>Permanent</strong>: Once signed with your key, your voice cannot be deleted or censored by a central authority.</li>
+                    <li><strong>Infinite</strong>: The protocol supports infinite nesting and extension.</li>
+                  </ul>
+                  <p className="text-muted-foreground mt-4 italic">
+                    This project is a visualization of that power. We are building a permanent, unbreakable chain of human thought.
+                  </p>
+                </section>
+              </div>
+
+              <div className="mt-8 pt-4 border-t flex justify-center">
+                <a
+                  href="https://github.com/zanynik/echo-field"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="gap-2">
+                    Contribute on GitHub <Star className="h-4 w-4" />
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
