@@ -73,6 +73,7 @@ export const loginWithNostr = async () => {
       wait(2000)
     ]);
     const user = await ndk.signer.user();
+    await user.fetchProfile();
     return user;
   } else {
     throw new Error("No NIP-07 extension found");
@@ -201,3 +202,10 @@ export const fetchThread = async (rootId: string): Promise<NostrPost[]> => {
   // though buildHierarchy will handle tree structure.
   return posts.sort((a, b) => a.created_at - b.created_at);
 };
+
+export const getUserProfile = async (pubkey: string) => {
+  const ndk = await initNDK();
+  const user = ndk.getUser({ hexpubkey: pubkey });
+  await user.fetchProfile();
+  return user.profile;
+}

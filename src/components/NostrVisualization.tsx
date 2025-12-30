@@ -28,7 +28,7 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
     const containerRef = useRef<HTMLDivElement>(null);
     const [nodes, setNodes] = useState<Node[]>([]);
     const [links, setLinks] = useState<Link[]>([]);
-    const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const [dimensions, setDimensions] = useState({ width: 800, height: 300 });
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
             if (containerRef.current) {
                 setDimensions({
                     width: containerRef.current.clientWidth,
-                    height: 500 // Fixed height for consistency
+                    height: 250 // Fixed height for consistency
                 });
             }
         };
@@ -67,25 +67,13 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
                 id: realRoot.id,
                 x: centerX,
                 y: centerY,
-                radius: 40,
+                radius: 20,
                 // Label with truncate
                 label: realRoot.content.length > 20 ? realRoot.content.substring(0, 20) + '...' : realRoot.content,
                 post: realRoot,
                 level: 0
             };
             startLevelNodes = realRoot.comments || [];
-        } else {
-            // Virtual root for multiple disconnected threads
-            isVirtualRoot = true;
-            rootNode = {
-                id: 'root-virtual',
-                x: centerX,
-                y: centerY,
-                radius: 40,
-                label: 'Echo Field',
-                level: 0
-            };
-            startLevelNodes = posts;
         }
 
         const newNodes: Node[] = [rootNode];
@@ -172,7 +160,7 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
     const textColor = isDark ? '#fff' : '#000';
 
     return (
-        <div ref={containerRef} className="w-full h-[500px] overflow-hidden bg-background mb-8 rounded-lg border border-border/50 relative">
+        <div ref={containerRef} className="w-full h-[250px] overflow-hidden bg-background mb-8 rounded-lg border border-border/50 relative">
             <svg width={dimensions.width} height={dimensions.height} className="absolute top-0 left-0">
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="20" refY="3.5" orient="auto">

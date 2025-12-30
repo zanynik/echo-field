@@ -259,17 +259,17 @@ const Index = () => {
               <Button variant="ghost" onClick={() => setIsGraphVisible(!isGraphVisible)}>
                 <Star className={`h-4 w-4 ${isGraphVisible ? "fill-current" : ""}`} />
               </Button>
+            </div>
+            <div className="w-1/4 flex justify-end items-center gap-2">
               {!user ? (
-                <Button onClick={handleLogin} variant="outline" className="ml-2">
+                <Button onClick={handleLogin} variant="outline" className="mr-2">
                   Login with NOSTR
                 </Button>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mr-2">
                   <span className="text-sm font-medium">{user.profile?.name || user.profile?.displayName || user.npub.slice(0, 8) + "..."}</span>
                 </div>
               )}
-            </div>
-            <div className="w-1/4 flex justify-end">
               <a
                 href="https://github.com/zanynik/echo-field"
                 target="_blank"
@@ -331,6 +331,7 @@ const Index = () => {
                 key={post.id}
                 id={post.id}
                 content={post.content}
+                tags={post.tags}
                 comments={post.comments || []}
                 onUpdate={loadPosts}
                 isLast={index === 0}
