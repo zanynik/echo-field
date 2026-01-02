@@ -31,6 +31,43 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
     const [dimensions, setDimensions] = useState({ width: 800, height: 300 });
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
+    // Pan and Zoom state
+    const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+        setTransform(prev => ({
+            ...prev,
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        }));
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        const scaleBy = 1.1;
+        const oldScale = transform.scale;
+        const newScale = e.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+        // Limit scale
+        if (newScale < 0.1 || newScale > 5) return;
+
+        // Zoom towards center (simplification)
+        // Ideally should zoom towards mouse pointer but centered setTransform is easier to start with
+
+        setTransform(prev => ({ ...prev, scale: newScale }));
+    };
+
     useEffect(() => {
         const updateDimensions = () => {
             if (containerRef.current) {
@@ -160,14 +197,23 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
     const textColor = isDark ? '#fff' : '#000';
 
     return (
-        <div ref={containerRef} className="w-full h-[250px] overflow-hidden bg-background mb-8 rounded-lg border border-border/50 relative">
-            <svg width={dimensions.width} height={dimensions.height} className="absolute top-0 left-0">
+        <div ref={containerRef} className="w-full h-[250px] overflow-hidden bg-background mb-8 rounded-lg border border-border/50 relative select-none">
+            <svg
+                width={dimensions.width}
+                height={dimensions.height}
+                className="absolute top-0 left-0 cursor-move"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
+            >
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="20" refY="3.5" orient="auto">
                         <polygon points="0 0, 10 3.5, 0 7" fill={strokeColor} opacity="0.5" />
                     </marker>
                 </defs>
-                <g>
+                <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
                     {links.map((link, i) => (
                         <line
                             key={i}
@@ -176,18 +222,21 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
                             x2={link.target.x}
                             y2={link.target.y}
                             stroke={strokeColor}
-                            strokeWidth={1}
+                            strokeWidth={1 / transform.scale}
                             opacity={0.4}
                         />
                     ))}
                     {nodes.map((node) => (
                         <g
                             key={node.id}
-                            onClick={() => handleNodeClick(node)}
+                            onClick={(e) => {
+                                e.stopPropagation(); // Prevent drag start
+                                if (!isDragging) handleNodeClick(node);
+                            }}
                             onMouseEnter={() => setHoveredNodeId(node.id)}
                             onMouseLeave={() => setHoveredNodeId(null)}
                             style={{ cursor: node.id === 'root-virtual' ? 'default' : 'pointer' }}
-                            className="transition-all duration-300 ease-in-out"
+                            className="transition-opacity duration-300 ease-in-out"
                         >
                             <circle
                                 cx={node.x}
@@ -195,27 +244,50 @@ const NostrVisualization = ({ posts, theme, onNodeClick }: NostrVisualizationPro
                                 r={node.radius + (hoveredNodeId === node.id ? 2 : 0)}
                                 fill={isDark ? '#000' : '#fff'}
                                 stroke={noceColor}
-                                strokeWidth={node.id === 'root-virtual' ? 3 : 1}
-                                className="transition-all duration-300"
+                                strokeWidth={(node.id === 'root-virtual' ? 3 : 1) / transform.scale}
                             />
                             {/* Show text for root or hovered nodes */}
                             {(node.id === 'root-virtual' || hoveredNodeId === node.id) && (
                                 <text
                                     x={node.x}
-                                    y={node.y - node.radius - 5}
+                                    y={node.y - node.radius - 5 / transform.scale}
                                     textAnchor="middle"
                                     fill={textColor}
-                                    fontSize={node.id === 'root-virtual' ? "14" : "10"}
+                                    fontSize={(node.id === 'root-virtual' ? 14 : 10) / transform.scale}
                                     fontWeight={node.id === 'root-virtual' ? "bold" : "normal"}
                                     className="select-none pointer-events-none"
                                 >
-                                    {node.id === 'root-virtual' ? "Hello Nostr World" : node.post?.content.substring(0, 20) + (node.post?.content.length > 20 ? '...' : '')}
+                                    {node.id === 'root-virtual' ? "Hello Nostr World" : (
+                                        node.post?.authorName ? `${node.post.authorName}: ${node.post.content.substring(0, 15)}...` :
+                                            node.post?.content.substring(0, 20) + (node.post?.content.length > 20 ? '...' : '')
+                                    )}
                                 </text>
                             )}
                         </g>
                     ))}
                 </g>
             </svg>
+
+            <div className="absolute bottom-2 right-2 flex flex-col gap-1">
+                <button
+                    className="bg-background/80 hover:bg-muted p-1 rounded border shadow-sm"
+                    onClick={(e) => { e.stopPropagation(); setTransform(prev => ({ ...prev, scale: prev.scale * 1.2 })); }}
+                >
+                    +
+                </button>
+                <button
+                    className="bg-background/80 hover:bg-muted p-1 rounded border shadow-sm"
+                    onClick={(e) => { e.stopPropagation(); setTransform(prev => ({ ...prev, scale: prev.scale / 1.2 })); }}
+                >
+                    -
+                </button>
+                <button
+                    className="bg-background/80 hover:bg-muted p-1 rounded border shadow-sm text-xs"
+                    onClick={(e) => { e.stopPropagation(); setTransform({ x: 0, y: 0, scale: 1 }); }}
+                >
+                    R
+                </button>
+            </div>
         </div>
     );
 };

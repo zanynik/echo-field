@@ -390,6 +390,7 @@ const Index = () => {
                 isLast={index === 0}
                 expandedIds={expandedIds}
                 theme={theme}
+                authorName={post.authorName}
               />
             ))
           )}

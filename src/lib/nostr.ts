@@ -119,6 +119,7 @@ export interface NostrPost {
   parent_id: string | null; // Derived from tags
   tags: string[][];
   comments?: NostrPost[];
+  authorName?: string;
 }
 
 export const fetchPosts = async (): Promise<NostrPost[]> => {
@@ -142,9 +143,12 @@ export const fetchPosts = async (): Promise<NostrPost[]> => {
 
 const mapEventToPost = (event: NDKEvent): NostrPost => {
   const eTag = event.tags.find(t => t[0] === 'e' && t[3] === 'reply'); // nip-10 preferred
-  // fallback to just finding the last 'e' tag if no marker
-  // simplified for now: just grab the first 'e' tag as parent
-  const parentTag = event.tags.find(t => t[0] === 'e');
+  const replyTag = event.tags.find(t => t[0] === 'e' && t[3] === 'reply');
+  const allETags = event.tags.filter(t => t[0] === 'e');
+  const lastETag = allETags.length > 0 ? allETags[allETags.length - 1] : undefined;
+
+  // Use reply tag if available, otherwise fallback to last e tag (NIP-10 legacy)
+  const parentTag = replyTag || lastETag;
 
   return {
     id: event.id,
@@ -202,7 +206,31 @@ export const fetchThread = async (rootId: string): Promise<NostrPost[]> => {
 
   // Sort by created_at ascending so conversation flows naturally in time, 
   // though buildHierarchy will handle tree structure.
-  return posts.sort((a, b) => a.created_at - b.created_at);
+  const sortedPosts = posts.sort((a, b) => a.created_at - b.created_at);
+
+  // Batch fetch profiles
+  const pubkeys = new Set(sortedPosts.map(p => p.pubkey));
+  if (pubkeys.size > 0) {
+    const users = await Promise.all(
+      Array.from(pubkeys).map(pubkey => ndk.getUser({ hexpubkey: pubkey }).fetchProfile())
+    );
+
+    // Create a map of pubkey -> name
+    const profileMap = new Map<string, string>();
+    Array.from(pubkeys).forEach((pubkey, i) => {
+      const profile = users[i];
+      if (profile) {
+        profileMap.set(pubkey, profile.name || profile.displayName || "");
+      }
+    });
+
+    // Update posts with author names
+    sortedPosts.forEach(post => {
+      post.authorName = profileMap.get(post.pubkey);
+    });
+  }
+
+  return sortedPosts;
 };
 
 export const getUserProfile = async (pubkey: string) => {

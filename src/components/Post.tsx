@@ -105,7 +105,8 @@ export const Post = ({
   initialShowComments = false,
   expandedIds,
   theme, // Add theme here
-}: PostProps) => {
+  authorName, // Add authorName prop
+}: PostProps & { authorName?: string }) => {
   const [newComment, setNewComment] = useState("");
   const [showWriteComment, setShowWriteComment] = useState(false);
   const [showComments, setShowComments] = useState(initialShowComments);
@@ -192,6 +193,11 @@ export const Post = ({
         className={`pt-6 ${comments.length > 0 ? "cursor-pointer" : ""}`}
         onClick={handleContentClick}
       >
+        {authorName && (
+          <div className="mb-2 text-sm font-semibold opacity-70">
+            {authorName}
+          </div>
+        )}
         <ContentRenderer content={content} tags={tags} />
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
@@ -258,6 +264,7 @@ export const Post = ({
                 initialShowComments={false}
                 expandedIds={expandedIds}
                 theme={theme}
+                authorName={comment.authorName}
               />
             ))}
           </div>
