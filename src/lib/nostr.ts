@@ -6,7 +6,9 @@ const DEFAULT_RELAYS = [
   "wss://relay.damus.io",
   "wss://relay.snort.social",
   "wss://nos.lol",
-  "wss://relay.primal.net"
+  "wss://relay.primal.net",
+  "wss://nostr.mom",
+  "wss://nostr.wine"
 ];
 
 let ndk: NDK;
